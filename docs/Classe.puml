@@ -1,0 +1,187 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Role {
+    - id: int
+    - nom: string
+    - description: string
+    - created_at: DateTime
+    + getNom(): string
+    + getDescription(): string
+}
+
+class Utilisateur {
+    - id: int
+    - nom: string
+    - prenom: string
+    - email: string
+    - password: string
+    - adresse: string
+    - telephone: string
+    - created_at: DateTime
+    + getFullName(): string
+    + getEmail(): string
+    + setPassword(string pwd): void
+    + verifierPassword(string pwd): bool
+    + getRole(): Role
+}
+
+class Client {
+    - id: int
+    - nom: string
+    - prenom: string
+    - telephone: string
+    - email: string
+    - limiteCredit: float
+    - soldeActuel: float
+    - created_at: DateTime
+    + getFullName(): string
+    + getCreditRemaining(): float
+    + canAfford(float montant): bool
+    + updateSolde(float montant): void
+    + getDettesActives(): array
+}
+
+class Fournisseur {
+    - id: int
+    - nom: string
+    - email: string
+    - telephone: string
+    - adresse: string
+    - created_at: DateTime
+    + getContact(): string
+    + getSolde(): float
+    + getApprovisionnements(): array
+}
+
+class Produit {
+    - id: int
+    - code: string
+    - libelle: string
+    - categorie: string
+    - prixVente: float
+    - coutAchat: float
+    - stockInitial: int
+    - stockActuel: int
+    - seuilAlerte: int
+    - created_at: DateTime
+    + updateStock(int quantite): void
+    + getStockValue(): float
+    + isStockLow(): bool
+    + getMarge(): float
+    + getTauxMarge(): float
+}
+
+class Vente {
+    - id: int
+    - numeroFacture: string
+    - montantTotal: float
+    - montantVerse: float
+    - modeReglement: string
+    - statut: string
+    - dateVente: DateTime
+    - dateEcheance: DateTime
+    - created_at: DateTime
+    + getRemainingAmount(): float
+    + isFullyPaid(): bool
+    + updateStatus(): void
+    + getMontantRestant(): float
+    + getLignesVente(): array
+}
+
+class LigneVente {
+    - id: int
+    - quantite: int
+    - prixUnitaire: float
+    - sousTotal: float
+    + calculateSubTotal(): float
+    + getProduit(): Produit
+}
+
+class Dette {
+    - id: int
+    - ref: string
+    - montantInitial: float
+    - montantVerse: float
+    - montantRestant: float
+    - dateEcheance: DateTime
+    - statut: string
+    - created_at: DateTime
+    + getResteDu(): float
+    + isSold(): bool
+    + applyPayment(float montant): void
+    + updateStatut(): void
+    + getPaiements(): array
+}
+
+class Paiement {
+    - id: int
+    - montant: float
+    - notes: string
+    - datePaiement: DateTime
+    - reference: string
+    + getFormattedDate(): string
+    + getMontant(): float
+}
+
+class ModePaiement {
+    - id: int
+    - nom: string
+    - description: string
+    + getNom(): string
+}
+
+class Approvisionnement {
+    - id: int
+    - referenceBl: string
+    - coutTotal: float
+    - dateAppro: DateTime
+    - dateReception: DateTime
+    - statut: string
+    - created_at: DateTime
+    + isReceived(): bool
+    + calculateTotal(): float
+    + updateStatut(): void
+    + getLignesApprovisionnement(): array
+}
+
+class LigneApprovisionnement {
+    - id: int
+    - quantiteAppro: int
+    - quantiteRecue: int
+    - prixAchat: float
+    - sousTotal: float
+    + getQuantiteManquante(): int
+    + calculateSubTotal(): float
+    + getProduit(): Produit
+}
+
+' --- Relations ---
+Utilisateur "1" -- "1" Role 
+Utilisateur "1" -- "*" Vente 
+Utilisateur "1" -- "*" Approvisionnement 
+Utilisateur "1" -- "*" Paiement 
+
+Client "1" -- "*" Vente 
+Client "1" -- "*" Dette 
+
+Vente "1" -- "0..1" Dette 
+Vente "1" -- "*" LigneVente 
+Vente "*" -- "0..1" Client 
+LigneVente "*" -- "1" Produit 
+
+Dette "1" -- "*" Paiement 
+Dette "1" -- "0..1" Vente 
+
+Paiement "*" -- "1" ModePaiement 
+Paiement "*" -- "0..1" Utilisateur 
+Fournisseur "1" -- "*" Approvisionnement 
+
+Approvisionnement "1" -- "*" LigneApprovisionnement 
+Approvisionnement "*" -- "0..1" Utilisateur 
+
+LigneApprovisionnement "*" -- "1" Produit 
+
+Produit "*" -- "0..1" Fournisseur 
+
+@enduml

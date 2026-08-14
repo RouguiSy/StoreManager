@@ -1,0 +1,31 @@
+@startuml
+left to right direction
+actor "Inventaire" as Inventor
+
+rectangle "Consultation & Inventaire" {
+    usecase "S'authentifier" as Auth
+    usecase "Consulter le Tableau de Bord" as Dash
+    usecase "Gérer les Produits & Tiers" as Prods
+    usecase "Consulter les Statistiques" as statis
+    usecase "Voir les ruptures de stock" as rupt
+    usecase "Voir la valeur totale du stock" as valStock
+    usecase "Voir les articles au catalogue" as nbArticles
+    usecase "Voir les clients enregistrés" as nbClients
+}
+
+Inventor --> Dash 
+Inventor --> Prods 
+
+Dash ..> Auth : <<include>>
+Prods ..> Auth : <<include>>
+
+Dash ..> statis : <<include>>
+Dash <.. rupt : <<extend>>
+
+Prods <.. statis : <<include>>
+
+statis <.. valStock : <<extend>>
+statis <.. nbArticles : <<extend>>
+statis <.. nbClients : <<extend>>
+
+@enduml
