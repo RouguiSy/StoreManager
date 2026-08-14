@@ -1,4 +1,3 @@
-
 ```markdown
 # 📓 Journal de Développement (DEVLOG)
 **Nom & Prénom** : Rougui Sy  
@@ -48,20 +47,32 @@
 #### 📌 Step 1.2 (20h30 - 22h00) : Schéma SQL PostgreSQL / SQLite
 - **Heure de réalisation** : 20h30 - 22h00
 - **Ce qui a été fait** :
-    - Création des scripts SQL :
-        - `schema.sql` pour PostgreSQL.
-        - `schema_sqlite.sql` pour SQLite (mode dégradé).
-    - Définition des tables correspondant au diagramme de classes.
-    - Ajout des contraintes d'intégrité :
-        - **Clés étrangères (FK)** : pour toutes les relations identifiées dans le diagramme de classes.
-        - **Contraintes CHECK** : validation des statuts (`EN_ATTENTE`, `PAYEE`, `ANNULEE`, `PARTIELLE`, `SOLDEE`, `NON_SOLDEE`, `EN_RETARD`, `RECU`).
-        - **Valeurs par défaut** : pour les dates de création et les statuts.
-    - Ajout d'index sur les clés étrangères pour optimiser les performances.
+    - Création du script SQL pour PostgreSQL (`docs/schema.sql`) avec :
+        - Toutes les tables correspondant au diagramme de classes (roles, utilisateurs, clients, fournisseurs, produits, modes_paiement, ventes, lignes_vente, dettes, paiements, approvisionnements, lignes_approvisionnement)
+        - Contraintes d'intégrité (clés primaires, clés étrangères)
+        - Contraintes CHECK pour valider les statuts (EN_ATTENTE, PAYEE, ANNULEE, PARTIELLE pour les ventes ; SOLDEE, NON_SOLDEE, EN_RETARD pour les dettes ; EN_ATTENTE, RECU, PARTIEL pour les approvisionnements)
+        - Contraintes CHECK pour valider les montants (>= 0)
+        - Index sur les clés étrangères pour optimiser les performances des jointures
+        - Index sur les champs de recherche fréquents (statut, ref, reference_bl)
+        - Insertion des données de base (rôles, modes de paiement)
+        - Insertion d'un utilisateur admin par défaut (email: admin@storemanager.sn, mot de passe: admin123)
+        - Vues utiles : v_dettes_clients et v_stock_produits
+    - Création du script SQL pour SQLite (`docs/schema_sqlite.sql`) avec :
+        - Adaptation de la syntaxe (AUTOINCREMENT vs SERIAL)
+        - Adaptation des types de données (REAL vs DECIMAL, DATETIME vs TIMESTAMP)
+        - Activation des clés étrangères avec `PRAGMA foreign_keys = ON`
+        - Mêmes contraintes et données de base que PostgreSQL
+        - Mêmes vues que PostgreSQL
+    - Ajout de la contrainte UNIQUE sur `dettes.vente_id` pour garantir qu'une vente ne peut avoir qu'une seule dette
+    - Création des index avec `IF NOT EXISTS` pour permettre la ré-exécution du script
 
 - **Difficultés / Obstacles** :
-    - Gestion des différences de syntaxe entre PostgreSQL et SQLite (ex: `SERIAL` vs `AUTOINCREMENT`, `TIMESTAMP` vs `DATETIME`).
-    - Définition des valeurs par défaut pour les champs de statut et les dates de création.
-    - Adaptation du type `float` pour les montants en fonction des SGBD.
+    - Gestion des différences de syntaxe entre PostgreSQL et SQLite :
+        - `SERIAL` vs `INTEGER PRIMARY KEY AUTOINCREMENT`
+        - `TIMESTAMP` vs `DATETIME`
+        - `DECIMAL(15,2)` vs `REAL`
+    - Activation obligatoire des clés étrangères dans SQLite avec `PRAGMA foreign_keys = ON`
+    - Adaptation des vues PostgreSQL pour SQLite (syntaxe identique)
 
 #### 📌 Step 1.3 (22h00 - 23h00) : Singleton Database & Fallback Automatique
 - **Heure de réalisation** : 22h00 - 23h00
@@ -73,6 +84,7 @@
         2. En cas d'échec (exception PDO), bascule automatique sur SQLite (`erp.db`).
         3. Le fichier SQLite est créé à la volée s'il n'existe pas.
     - Mise en place du chargement des paramètres de connexion via variables d'environnement.
+    - Activation automatique des clés étrangères pour SQLite (`PRAGMA foreign_keys = ON`).
     - Les erreurs sont loggées pour le débogage sans afficher d'informations sensibles à l'utilisateur.
 
 - **Difficultés / Obstacles** :
