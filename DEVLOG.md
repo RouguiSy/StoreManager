@@ -16,7 +16,7 @@
     - Définition des 4 acteurs : `Admin`, `Chargé de Vente`, `Chargé de Stock`, `Inventaire`.
     - Rédaction du diagramme de cas d'utilisation (Use Case) pour l'acteur **Admin** :
         - Cas principaux : Consulter Tableau de Bord, Gérer Ventes (POS), Gérer Dettes, Gérer Approvisionnements, Gérer Produits & Tiers.
-        - Cas secondaires identifiés : Voir ventes récentes, Voir dettes du jour, Voir ruptures de stock, Voir livraisons du jour, Voir clients débiteurs, S'approvisionner, Valider vente, Voir registre général, Voir registre actif, Rembourser dette, Lister livraisons, Ajouter client, Ajouter fournisseur, Ajouter produit.
+        - Cas secondaires identifiés : Voir ventes récentes, Voir dettes du jour, Voir ruptures de stock, Voir livraisons du jour, Voir clients débiteurs, S'approvisionner, Valider vente, Voir registre général, Voir registre actif, Rembourser dette, Lister livraisons, Ajouter client, Ajouter fournisseur, Ajouter produit, Voir ligne, Réceptionner, Voir valeur totale du stock, Voir articles au catalogue, Voir clients enregistrés.
     - Rédaction du diagramme de cas d'utilisation pour l'acteur **Chargé de Vente** :
         - Cas principaux : Consulter Tableau de Bord, Gérer Ventes (POS), Gérer Dettes.
         - Cas secondaires : Voir ventes récentes, Voir dettes du jour, Voir clients débiteurs, Valider vente, Voir registre général, Voir registre actif, Rembourser dette.
@@ -50,7 +50,7 @@
     - Création du script SQL pour PostgreSQL (`docs/schema.sql`) avec :
         - Toutes les tables correspondant au diagramme de classes (roles, utilisateurs, clients, fournisseurs, produits, modes_paiement, ventes, lignes_vente, dettes, paiements, approvisionnements, lignes_approvisionnement)
         - Contraintes d'intégrité (clés primaires, clés étrangères)
-        - Contraintes CHECK pour valider les statuts (EN_ATTENTE, PAYEE, ANNULEE, PARTIELLE pour les ventes ; SOLDEE, NON_SOLDEE, EN_RETARD pour les dettes ; EN_ATTENTE, RECU, PARTIEL pour les approvisionnements)
+        - Contraintes CHECK pour valider les statuts (EN_ATTENTE, PAYEE, ANNULEE, PARTIELLE, SOLDEE, NON_SOLDEE, EN_RETARD, RECU)
         - Contraintes CHECK pour valider les montants (>= 0)
         - Index sur les clés étrangères pour optimiser les performances des jointures
         - Index sur les champs de recherche fréquents (statut, ref, reference_bl)
@@ -64,7 +64,7 @@
         - Mêmes contraintes et données de base que PostgreSQL
         - Mêmes vues que PostgreSQL
     - Ajout de la contrainte UNIQUE sur `dettes.vente_id` pour garantir qu'une vente ne peut avoir qu'une seule dette
-    - Création des index avec `IF NOT EXISTS` pour permettre la ré-exécution du script
+    - Création des index pour optimiser les performances
 
 - **Difficultés / Obstacles** :
     - Gestion des différences de syntaxe entre PostgreSQL et SQLite :
@@ -72,7 +72,7 @@
         - `TIMESTAMP` vs `DATETIME`
         - `DECIMAL(15,2)` vs `REAL`
     - Activation obligatoire des clés étrangères dans SQLite avec `PRAGMA foreign_keys = ON`
-    - Adaptation des vues PostgreSQL pour SQLite (syntaxe identique)
+    - Adaptation des vues PostgreSQL pour SQLite
 
 #### 📌 Step 1.3 (22h00 - 23h00) : Singleton Database & Fallback Automatique
 - **Heure de réalisation** : 22h00 - 23h00
@@ -86,6 +86,7 @@
     - Mise en place du chargement des paramètres de connexion via variables d'environnement.
     - Activation automatique des clés étrangères pour SQLite (`PRAGMA foreign_keys = ON`).
     - Les erreurs sont loggées pour le débogage sans afficher d'informations sensibles à l'utilisateur.
+    - La classe est conçue pour être facilement testable et maintenable.
 
 - **Difficultés / Obstacles** :
     - Gestion propre des exceptions PDO sans exposer les détails de la base de données.
