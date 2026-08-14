@@ -1,0 +1,51 @@
+@startuml
+left to right direction
+actor "Chargé de Stock" as StockManager
+
+rectangle "Gestion des Stocks" {
+    usecase "S'authentifier" as Auth
+    usecase "Consulter le Tableau de Bord" as Dash
+    usecase "Gérer les Approvisionnements" as Appros
+    usecase "Gérer les Produits & Tiers" as Prods
+    usecase "Consulter les Statistiques" as statis
+    usecase "Voir les ruptures de stock" as rupt
+    usecase "S'approvisionner" as sApros
+    usecase "Sélectionner un fournisseur" as sFour
+    usecase "Voir les livraisons du jour" as lJours
+    usecase "Lister les Livraisons" as lLivraison
+    usecase "Ajouter un Produit" as addProd
+    usecase "Ajouter un Fournisseur" as addFour
+    usecase "Voir la valeur totale du stock" as valStock
+    usecase "Voir les articles au catalogue" as nbArticles
+    usecase "Voir ligne" as vligne
+    usecase "Receptionner" as recep
+}
+
+StockManager --> Dash 
+StockManager --> Appros 
+StockManager --> Prods 
+
+Dash ..> Auth : <<include>>
+Appros ..> Auth : <<include>>
+Prods ..> Auth : <<include>>
+
+Dash ..> statis : <<include>>
+Dash <.. rupt : <<extend>>
+Dash <.. lJours : <<extend>>
+
+rupt <.. sApros : <<extend>>
+
+sApros ..> sFour : <<include>>
+
+Appros ..> statis : <<include>>
+Appros <.. lLivraison : <<extend>>
+lLivraison <.. vligne : <<extend>>
+lLivraison <.. recep : <<extend>>
+
+Prods <.. addProd : <<extend>>
+Prods <.. addFour : <<extend>>
+
+statis <.. valStock : <<extend>>
+statis <.. nbArticles : <<extend>>
+
+@enduml

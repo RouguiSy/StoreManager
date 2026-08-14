@@ -1,0 +1,61 @@
+@startuml
+left to right direction
+actor "Chargé de Vente" as Vendeur
+
+rectangle "Point de Vente" {
+    usecase "S'authentifier" as Auth
+    usecase "Consulter le Tableau de Bord" as Dash
+    usecase "Gérer les Ventes (POS)" as ventes
+    usecase "Gérer les Dettes" as Dettes
+    usecase "Consulter les Statistiques" as statis
+    usecase "Voir les ventes récentes" as rventes
+    usecase "Voir les dettes du jour" as jDette
+    usecase "Voir les clients débiteurs" as dClients
+    usecase "Voir l'encours des dettes" as aDette
+    usecase "Rembourser une dette" as rDette
+    usecase "Valider une vente" as vVente
+    usecase "Sélectionner un Client" as sClient
+    usecase "Sélectionner un Article" as sArticle
+    usecase "Choisir le Règlement" as cReglement
+    usecase "Voir le registre général" as vRegistre
+    usecase "Voir le registre actif" as vRegistreA
+    usecase "Afficher les détails des lignes" as dLigne
+    usecase "Voir les Articles" as vArt
+    usecase "Voir les Paiements" as vPaiment
+    usecase "Sélectionner un paiement" as sPaiment
+}
+
+Vendeur --> Dash 
+Vendeur --> ventes 
+Vendeur --> Dettes 
+
+Dash ..> Auth : <<include>>
+ventes ..> Auth : <<include>>
+Dettes ..> Auth : <<include>>
+
+Dash ..> statis : <<include>>
+Dash <.. rventes : <<extend>>
+Dash <.. jDette : <<extend>>
+Dash <.. dClients : <<extend>>
+
+dClients <.. aDette : <<extend>>
+
+ventes ..> statis : <<include>>
+ventes <.. vVente : <<extend>>
+vVente ..> sClient : <<include>>
+vVente ..> sArticle : <<include>>
+vVente ..> cReglement : <<include>>
+ventes <.. vRegistre : <<extend>>
+
+vRegistre <.. dLigne : <<extend>>
+
+Dettes <.. statis : <<extend>>
+Dettes <.. vRegistreA : <<extend>>
+
+vRegistreA <.. vArt : <<extend>>
+vRegistreA <.. vPaiment : <<extend>>
+vRegistreA <.. rDette : <<extend>>
+
+rDette ..> sPaiment : <<include>>
+
+@enduml

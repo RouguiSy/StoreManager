@@ -1,0 +1,106 @@
+@startuml
+left to right direction
+actor "Admin Boutique" as Admin
+
+rectangle "Gestion de la Boutique" {
+    usecase "S'authentifier" as Auth
+    usecase "Consulter le Tableau de Bord" as Dash
+    usecase "Gérer les Ventes (POS)" as ventes
+    usecase "Gérer les Dettes" as Dettes
+    usecase "Gérer les Approvisionnements" as Appros
+    usecase "Gérer les Produits & Tiers" as Prods
+    usecase "Consulter les Statistiques" as statis
+    usecase "Voir les ventes récentes" as rventes
+    usecase "Voir les dettes du jour" as jDette
+    usecase "Voir les ruptures de stock" as rupt
+    usecase "S'approvisionner" as sApros
+    usecase "Sélectionner un fournisseur" as sFour
+    usecase "Voir les livraisons du jour" as lJours
+    usecase "Voir les clients débiteurs" as dClients
+    usecase "Voir l'encours des dettes" as aDette
+    usecase "Rembourser une dette" as rDette
+    usecase "Voir le solde fournisseur" as sFournisseurs
+    usecase "Voir le détail" as vDetails
+    usecase "Payer" as payer
+    usecase "Valider une vente" as vVente
+    usecase "Sélectionner un Client" as sClient
+    usecase "Sélectionner un Article" as sArticle
+    usecase "Choisir le Règlement" as cReglement
+    usecase "Voir le registre général" as vRegistre
+    usecase "Voir le registre actif" as vRegistreA
+    usecase "Afficher les détails des lignes" as dLigne
+    usecase "Voir les Articles" as vArt
+    usecase "Voir les Paiements" as vPaiment
+    usecase "Sélectionner un paiement" as sPaiment
+    usecase "Lister les Livraisons" as lLivraison
+    usecase "Ajouter un Client" as addClient
+    usecase "Ajouter un Fournisseur" as addFour
+    usecase "Ajouter un Produit" as addProd
+    usecase "Voir la valeur totale du stock" as valStock
+    usecase "Voir les articles au catalogue" as nbArticles
+    usecase "Voir les clients enregistrés" as nbClients
+    usecase "Voir ligne" as vligne
+    usecase "Receptionner" as recep
+}
+
+Admin --> Dash 
+Admin --> ventes 
+Admin --> Dettes 
+Admin --> Appros 
+Admin --> Prods 
+
+Dash ..> Auth : <<include>>
+ventes ..> Auth : <<include>>
+Dettes ..> Auth : <<include>>
+Appros ..> Auth : <<include>>
+Prods ..> Auth : <<include>>
+
+Dash ..> statis : <<include>>
+Dash <.. rventes : <<extend>>
+Dash <.. jDette : <<extend>>
+Dash <.. rupt : <<extend>>
+Dash <.. lJours : <<extend>>
+Dash <.. dClients : <<extend>>
+
+rupt <.. sApros : <<extend>>
+
+sApros ..> sFour : <<include>>
+
+dClients <.. aDette : <<extend>>
+dClients <.. sFournisseurs : <<extend>>
+
+sFournisseurs <.. vDetails : <<extend>>
+sFournisseurs <.. payer : <<extend>>
+
+ventes ..> statis : <<include>>
+ventes <.. vVente : <<extend>>
+vVente ..> sClient : <<include>>
+vVente ..> sArticle : <<include>>
+vVente ..> cReglement : <<include>>
+ventes <.. vRegistre : <<extend>>
+
+vRegistre <.. dLigne : <<extend>>
+
+Dettes <.. statis : <<extend>>
+Dettes <.. vRegistreA : <<extend>>
+
+vRegistreA <.. vArt : <<extend>>
+vRegistreA <.. vPaiment : <<extend>>
+vRegistreA <.. rDette : <<extend>>
+
+rDette ..> sPaiment : <<include>>
+
+Appros ..> statis : <<include>>
+Appros <.. lLivraison : <<extend>>
+lLivraison <.. vligne : <<extend>>
+lLivraison <.. recep : <<extend>>
+
+Prods <.. addClient : <<extend>>
+Prods <.. addFour : <<extend>>
+Prods <.. addProd : <<extend>>
+
+statis <.. valStock : <<extend>>
+statis <.. nbArticles : <<extend>>
+statis <.. nbClients : <<extend>>
+
+@enduml
