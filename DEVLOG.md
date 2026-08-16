@@ -1,4 +1,3 @@
-
 # 📓 Journal de Développement (DEVLOG)
 
 **Nom & Prénom** : Rougui Sy
@@ -19,8 +18,15 @@
   - J'ai listé les 4 acteurs : Admin, Chargé de Vente, Chargé de Stock et Inventaire.
   - Pour chaque acteur, j'ai fait son diagramme de cas d'utilisation.
   - J'ai aussi fait le diagramme de classes avec toutes les entités.
+- **Modifications apportées au diagramme de classes** :
+
+  - Au début, j'avais mis une relation directe entre `Vente` et `Client` avec une cardinalité "1" côté Client. Mais en réfléchissant, une vente peut être faite sans client (vente anonyme). J'ai donc changé la cardinalité en "0..1" côté Vente. Finalement, le prof m'a dit que c'était mieux d'avoir un client pour chaque vente pour le suivi, donc j'ai remis "1".
+  - J'ai d'abord modélisé la relation entre `Utilisateur` et `Role` avec une composition forte. Mais en discutant avec le prof, j'ai compris qu'un utilisateur a juste un rôle, mais le rôle existe indépendamment. J'ai donc changé en une simple association.
+  - Pour la relation entre `Vente` et `Dette`, j'ai longtemps hésité. Au début, je pensais qu'une vente pouvait avoir plusieurs dettes. Mais en réalité, une vente donne naissance à une seule dette quand le client paie en plusieurs fois. J'ai donc mis "1" côté Vente et "0..1" côté Dette.
+  - J'ai aussi ajouté l'entité `PaiementFournisseur` que j'avais oubliée au départ. Dans le commerce, on doit aussi gérer les paiements aux fournisseurs, pas seulement les paiements clients.
 - **Difficultés / Obstacles** :
 
+  - J'ai eu du mal à bien comprendre les cardinalités. Par exemple, "1" signifie qu'un élément est obligatoire, "0..1" signifie qu'il est optionnel. J'ai dû réfléchir à chaque relation métier.
   - J'ai aussi hésité sur la relation entre Vente et Dette. Je me suis demandé : est-ce qu'une vente peut avoir plusieurs dettes ? J'ai compris qu'une vente donne naissance à une seule dette quand le client paie en plusieurs fois. J'ai donc mis "0..1" côté Vente et "1" côté Dette.
 
 #### 📌 Step 1.2 (20h30 - 22h00) : Schéma SQL PostgreSQL / SQLite
@@ -88,41 +94,17 @@
 - **Heure de réalisation** : 14h00 - 17h00
 - **Ce qui a été fait** :
 
-  - *(Pas encore réalisé)*
+  - J'ai créé la classe `VenteService.php` dans `src/Service/`.
+  - J'ai implémenté la méthode principale `processSale()` qui gère toute une vente.
+  - Cette méthode vérifie que le panier n'est pas vide, que le client existe, que le stock est suffisant et que la limite de crédit n'est pas dépassée.
+  - J'ai utilisé une **transaction PDO** pour garantir que toutes les opérations se font ou aucune ne se fait.
+  - J'ai créé des méthodes privées pour insérer la vente, les lignes de vente, la dette si nécessaire, et mettre à jour le statut.
+  - J'ai ajouté des méthodes pour générer automatiquement les numéros de facture et les références de dette.
+  - J'ai aussi ajouté des méthodes utilitaires : `calculerTotalPanier()` et `verifierStock()`.
 - **Difficultés / Obstacles** :
 
-  - *(Pas encore réalisé)*
-
-#### 📌 Step 2.4 (17h00 - 20h00) : Controller POS & Vue Caisse
-
-- **Heure de réalisation** : 17h00 - 20h00
-- **Ce qui a été fait** :
-
-  - *(Pas encore réalisé)*
-- **Difficultés / Obstacles** :
-
-  - *(Pas encore réalisé)*
-
----
-
-## 2. Autopsie de 3 Méthodes Clés (Indispensable pour l'oral)
-
-### Méthode 1 : `Database::connexionDB()`
-
-- **Fichier** : `src/Core/Database.php`
-- **Rôle** : Assurer une connexion unique à la base avec fallback PostgreSQL → SQLite.
-- **Explication ligne par ligne** : *(À compléter après la Phase 3)*
-
-### Méthode 2 : `VenteService::processSale()`
-
-- **Fichier** : `src/Service/VenteService.php`
-- **Rôle** : Gérer une vente avec contrôle du stock et de la limite de crédit.
-- **Explication ligne par ligne** : *(À compléter après la Phase 3)*
-
-### Méthode 3 : `DebtService::repayDebt()`
-
-- **Fichier** : `src/Service/DebtService.php`
-- **Rôle** : Gérer le remboursement d'une dette et mettre à jour les statuts.
-- **Explication ligne par ligne** : *(À compléter après la Phase 3)*
-
--
+  - La gestion des transactions a été compliquée. Il fallait s'assurer que si une requête échoue, toutes les autres sont annulées. Sans ça, on aurait des données incohérentes.
+  - J'ai eu du mal à bien comprendre l'ordre des opérations. J'ai d'abord vérifié le stock, puis j'ai inséré la vente, puis les lignes, puis j'ai décrémenté le stock, et enfin j'ai créé la dette si nécessaire.
+  - La génération des numéros de facture m'a demandé de faire une requête pour compter les factures existantes du jour. J'ai utilisé `LIKE` avec un préfixe pour trouver les factures du jour.
+  - Le plus gros problème : j'ai d'abord fait la décrémentation du stock avant la transaction. Du coup, si la vente échouait, le stock restait décrémenté. J'ai compris qu'il fallait tout mettre dans la transaction pour que tout soit annulé en cas d'erreur.
+    -

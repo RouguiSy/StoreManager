@@ -29,7 +29,6 @@ class ClientRepository
         $client->setId($id);
         return $id;
     }
-
     public function selectById(int $id): ?Client
     {
         $sql = "SELECT * FROM clients WHERE id = :id";
