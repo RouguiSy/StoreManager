@@ -107,4 +107,28 @@
   - J'ai eu du mal à bien comprendre l'ordre des opérations. J'ai d'abord vérifié le stock, puis j'ai inséré la vente, puis les lignes, puis j'ai décrémenté le stock, et enfin j'ai créé la dette si nécessaire.
   - La génération des numéros de facture m'a demandé de faire une requête pour compter les factures existantes du jour. J'ai utilisé `LIKE` avec un préfixe pour trouver les factures du jour.
   - Le plus gros problème : j'ai d'abord fait la décrémentation du stock avant la transaction. Du coup, si la vente échouait, le stock restait décrémenté. J'ai compris qu'il fallait tout mettre dans la transaction pour que tout soit annulé en cas d'erreur.
-    -
+
+#### 📌 Step 2.4 (17h00 - 20h00) : Controller POS & Vue Caisse
+
+- **Heure de réalisation** : 17h00 - 20h00
+- **Ce qui a été fait** :
+
+  - J'ai créé le dossier `src/Controller/` et la classe `POSController.php`.
+  - J'ai créé le gestionnaire de sessions `SessionManager.php` dans `src/Core/` pour centraliser la gestion des sessions.
+  - Le contrôleur gère plusieurs actions :
+    - `index()` : Affiche la page de caisse
+    - `addToCart()` : Ajoute un produit au panier (session)
+    - `removeFromCart()` : Retire un produit du panier
+    - `clearCart()` : Vide le panier
+    - `setClient()` : Sélectionne un client
+    - `setPayment()` : Définit le mode de règlement et le montant versé
+    - `validateSale()` : Valide la vente en appelant `VenteService`
+  - J'ai utilisé les sessions pour stocker le panier, le client sélectionné, le mode de règlement et le montant versé.
+  - J'ai créé la vue `views/pos/index.php` avec une interface tactile.
+  - J'ai intégré les messages de succès/erreur via les sessions.
+- **Difficultés / Obstacles** :
+
+  - J'ai dû bien réfléchir à la structure du panier en session : un tableau associatif `[produit_id => quantite]`.
+  - Le passage des données entre le contrôleur et la vue m'a demandé de bien organiser les variables.
+
+---

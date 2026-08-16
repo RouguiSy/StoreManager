@@ -27,36 +27,82 @@ class Approvisionnement
         $this->statut = $statut;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function setId(?int $id): void { $this->id = $id; }
+    public function getId(): ?int { 
+        return $this->id; 
+    }
+    public function setId(?int $id): void { 
+        $this->id = $id; 
+    }
 
-    public function getReferenceBl(): string { return $this->reference_bl; }
+    public function getReferenceBl(): string { 
+        return $this->reference_bl; 
+    }
 
-    public function getFournisseurId(): int { return $this->fournisseurId; }
-    public function setFournisseurId(int $fournisseurId): void { $this->fournisseurId = $fournisseurId; }
+    public function getFournisseurId(): int { 
+        return $this->fournisseurId; 
+    }
 
-    public function getFournisseur(): ?Fournisseur { return $this->fournisseur; }
-    public function setFournisseur(?Fournisseur $fournisseur): void { $this->fournisseur = $fournisseur; }
+    public function setFournisseurId(int $fournisseurId): void { 
+        $this->fournisseurId = $fournisseurId; 
+    }
 
-    public function getUtilisateurId(): ?int { return $this->utilisateurId; }
-    public function setUtilisateurId(?int $utilisateurId): void { $this->utilisateurId = $utilisateurId; }
+    public function getFournisseur(): ?Fournisseur { 
+        return $this->fournisseur; 
+    }
+    public function setFournisseur(?Fournisseur $fournisseur): void { 
+        $this->fournisseur = $fournisseur; 
+    }
 
-    public function getUtilisateur(): ?Utilisateur { return $this->utilisateur; }
-    public function setUtilisateur(?Utilisateur $utilisateur): void { $this->utilisateur = $utilisateur; }
+    public function getUtilisateurId(): ?int { 
+        return $this->utilisateurId; 
+    }
 
-    public function getCoutTotal(): float { return $this->cout_total; }
-    public function setCoutTotal(float $cout_total): void { $this->cout_total = $cout_total; }
+    public function setUtilisateurId(?int $utilisateurId): void { 
+        $this->utilisateurId = $utilisateurId; 
+    }
 
-    public function getDateReception(): ?string { return $this->date_reception; }
-    public function setDateReception(?string $date_reception): void { $this->date_reception = $date_reception; }
+    public function getUtilisateur(): ?Utilisateur { 
+        return $this->utilisateur; 
+    }
 
-    public function getStatut(): string { return $this->statut; }
-    public function setStatut(string $statut): void { $this->statut = $statut; }
+    public function setUtilisateur(?Utilisateur $utilisateur): void { 
+        $this->utilisateur = $utilisateur; 
+    }
 
-    public function isReceived(): bool { return $this->statut === 'RECU'; }
+    public function getCoutTotal(): float { 
+        return $this->cout_total; 
+    }
+    public function setCoutTotal(float $cout_total): void { 
+        $this->cout_total = $cout_total; 
+    }
 
-    public function getLignes(): array { return $this->lignes; }
-    public function setLignes(array $lignes): void { $this->lignes = $lignes; }
+    public function getDateReception(): ?string {
+        return $this->date_reception; 
+    }
+    public function setDateReception(?string $date_reception): void {
+        $this->date_reception = $date_reception; 
+    }
+
+    public function getStatut(): string {
+        return $this->statut; 
+    }
+
+    public function setStatut(string $statut): void {
+        $this->statut = $statut; 
+    }
+
+    public function isReceived(): bool {
+        return $this->statut === 'RECU'; 
+    }
+
+    public function getLignes(): array {
+        return $this->lignes; 
+    }
+
+    public function setLignes(array $lignes): void {
+        $this->lignes = $lignes; 
+        
+    }
 
     public function addLigne($ligne): void
     {

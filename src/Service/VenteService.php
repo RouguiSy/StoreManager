@@ -34,7 +34,7 @@ class VenteService
         $montantTotal = 0;
 
         foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById($produitId);
+            $produit = $this->produitRepo->selectById((int)$produitId);
             if (!$produit) {
                 return ['success' => false, 'message' => "Produit ID $produitId introuvable", 'vente_id' => null];
             }
@@ -62,7 +62,7 @@ class VenteService
         if ($montantRestant > 0 && $montantRestant > $soldeDisponible) {
             return [
                 'success' => false,
-                'message' => "Limite de crédit dépassée. Solde disponible: $soldeDisponible FCFA, Reste dû: $montantRestant FCFA",
+                'message' => "Limite de crédit dépassée. Solde disponible: " . number_format($soldeDisponible, 0, ',', ' ') . " FCFA, Reste dû: " . number_format($montantRestant, 0, ',', ' ') . " FCFA",
                 'vente_id' => null
             ];
         }
@@ -232,7 +232,7 @@ class VenteService
     {
         $total = 0;
         foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById($produitId);
+            $produit = $this->produitRepo->selectById((int)$produitId);
             if ($produit) {
                 $total += $produit->getPrixVente() * $quantite;
             }
@@ -244,7 +244,7 @@ class VenteService
     {
         $erreurs = [];
         foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById($produitId);
+            $produit = $this->produitRepo->selectById((int)$produitId);
             if (!$produit) {
                 $erreurs[] = "Produit ID $produitId introuvable";
             } elseif ($produit->getStockActuel() < $quantite) {
