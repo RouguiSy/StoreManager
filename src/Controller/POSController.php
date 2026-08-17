@@ -168,14 +168,14 @@ class POSController
         
         if ($result['success']) {
             SessionManager::setMessage(
-                "✅ Vente enregistrée - Facture: {$result['numero_facture']} - Total: " . 
+                "Vente enregistrée - Facture: {$result['numero_facture']} - Total: " . 
                 number_format($result['montant_total'], 0, ',', ' ') . " F",
                 'success'
             );
             SessionManager::clearPanier();
             SessionManager::setMontantVerse(0);
         } else {
-            SessionManager::setMessage("❌ " . $result['message'], 'error');
+            SessionManager::setMessage($result['message'], 'error');
         }
         
         header('Location: index.php');
