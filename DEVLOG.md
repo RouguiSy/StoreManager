@@ -132,3 +132,44 @@
   - Le passage des données entre le contrôleur et la vue m'a demandé de bien organiser les variables.
 
 ---
+
+### 🚀 [Dimanche - Phase 3] : Dettes, Approvisionnements, Roles & Cloture
+
+#### Step 3.1 (09h00 - 11h30) : Gestion des Dettes & Remboursements
+
+- **Heure de realisation** : 09h00 - 11h30
+- **Ce qui a ete fait** :
+
+  - J'ai cree le repository `DetteRepository.php` avec les methodes :
+    - `insert()` : Ajoute une dette
+    - `selectById()` : Recherche par ID
+    - `selectByClient()` : Dettes d'un client
+    - `selectDettesActives()` : Toutes les dettes non soldees
+    - `selectDettesByClientActives()` : Dettes actives d'un client
+    - `selectAll()` : Toutes les dettes
+    - `update()` : Met a jour une dette
+    - `insertPaiement()` : Ajoute un paiement
+    - `getPaiementsByDette()` : Historique des paiements
+    - `getTotalDettesParClient()` : Total des dettes d'un client
+    - `toObjet()` : Conversion SQL -> Objet
+  - J'ai cree le service `DebtService.php` avec les methodes :
+    - `repayDebt()` : Remboursement d'une dette avec transaction
+    - `getDettesActives()` : Recupere toutes les dettes actives
+    - `getDettesByClient()` : Dettes d'un client
+    - `getDettesActivesByClient()` : Dettes actives d'un client
+    - `getTotalDettesByClient()` : Total des dettes d'un client
+    - `getPaiementsByDette()` : Historique des paiements
+    - `getDetteWithDetails()` : Dette avec ses paiements
+  - J'ai cree la vue `views/dettes/index.php` avec :
+    - Statistiques : total dettes, nombre dettes, clients debiteurs, total rembourse
+    - Liste des dettes actives avec informations client
+    - Formulaire de remboursement avec choix du mode de paiement
+    - Historique des paiements pour chaque dette
+    - Filtrage (toutes / actives)
+
+- **Difficultes / Obstacles** :
+
+  - La gestion des transactions pour le remboursement : il fallait mettre a jour la dette, ajouter le paiement ET mettre a jour le solde du client.
+  - Le calcul du total des dettes par client avec `COALESCE` pour eviter les null.
+  - L'affichage dynamique des formulaires de remboursement avec toggle en JavaScript.
+  - La recuperation des paiements pour l'historique m'a demande de bien structurer les donnees.
