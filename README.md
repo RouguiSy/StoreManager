@@ -190,6 +190,5 @@ L'application tente d'abord de se connecter à PostgreSQL. Si la connexion écho
 
 **Rougui Sy**
 
-## Licence
 
 Ce projet est réalisé dans le cadre d'un projet de formation.
