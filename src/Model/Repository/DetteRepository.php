@@ -2,6 +2,7 @@
 
 require_once dirname(__DIR__) . "/Entity/Dette.php";
 require_once dirname(__DIR__) . "/Entity/Paiement.php";
+require_once dirname(__DIR__, 2) . "/Core/Database.php";
 
 class DetteRepository
 {
@@ -154,6 +155,14 @@ class DetteRepository
         $result = Database::executeQuery($pdo, $sql, ['client_id' => $clientId]);
 
         return $result ? (float) $result['total'] : 0;
+    }
+
+    public static function getModesPaiement(): array
+    {
+        $pdo = self::getPdo();
+        $sql = "SELECT * FROM modes_paiement ORDER BY nom";
+        $results = Database::query($pdo, $sql, false);
+        return $results;
     }
 
     private static function toObjet(array $row): Dette

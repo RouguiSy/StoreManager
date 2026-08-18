@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . "/Entity/Fournisseur.php";
+require_once dirname(__DIR__, 2) . "/Core/Database.php";
 
 class FournisseurRepository
 {
