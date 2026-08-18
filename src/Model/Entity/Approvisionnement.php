@@ -7,21 +7,19 @@ class Approvisionnement
 {
     private ?int $id;
     private string $reference_bl;
-    private int $fournisseurId;
     private ?Fournisseur $fournisseur = null;
-    private ?int $utilisateurId;
     private ?Utilisateur $utilisateur = null;
     private float $cout_total;
     private ?string $date_reception;
     private string $statut;
     private array $lignes = [];
 
-    public function __construct(string $reference_bl, int $fournisseurId, ?int $utilisateurId, float $cout_total, ?string $date_reception = null, string $statut = 'EN_ATTENTE', ?int $id = null)
+    public function __construct(string $reference_bl,Fournisseur $fournisseur,?Utilisateur $utilisateur, float $cout_total, ?string $date_reception = null, string $statut = 'EN_ATTENTE', ?int $id = null)
     {
-        $this->id = $id;
+        $this-> id = $id;
+        $this-> fournisseur = $fournisseur;
+        $this-> utilisateur = $utilisateur;
         $this->reference_bl = $reference_bl;
-        $this->fournisseurId = $fournisseurId;
-        $this->utilisateurId = $utilisateurId;
         $this->cout_total = $cout_total;
         $this->date_reception = $date_reception;
         $this->statut = $statut;
@@ -30,6 +28,7 @@ class Approvisionnement
     public function getId(): ?int { 
         return $this->id; 
     }
+    
     public function setId(?int $id): void { 
         $this->id = $id; 
     }
@@ -39,7 +38,7 @@ class Approvisionnement
     }
 
     public function getFournisseurId(): int { 
-        return $this->fournisseurId; 
+        return $this->fournisseur?->getId(); 
     }
 
     public function setFournisseurId(int $fournisseurId): void { 
@@ -54,7 +53,7 @@ class Approvisionnement
     }
 
     public function getUtilisateurId(): ?int { 
-        return $this->utilisateurId; 
+        return $this->utilisateurId?->getId(); 
     }
 
     public function setUtilisateurId(?int $utilisateurId): void { 

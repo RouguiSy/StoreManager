@@ -7,10 +7,8 @@ class Vente
 {
     private ?int $id;
     private string $numero_facture;
-    private int $clientId;
-    private ?Client $client = null;
-    private int $utilisateurId;
-    private ?Utilisateur $utilisateur = null;
+    private Client $client ;
+    private Utilisateur $utilisateur ;
     private float $montant_total;
     private float $montant_verse;
     private ?string $mode_reglement;
@@ -19,12 +17,12 @@ class Vente
     private array $lignes = [];
     private ?Dette $dette = null;
 
-    public function __construct(string $numero_facture, int $clientId, int $utilisateurId, float $montant_total, float $montant_verse = 0, ?string $mode_reglement = null, string $statut = 'EN_ATTENTE', ?string $date_echeance = null, ?int $id = null)
+    public function __construct(string $numero_facture, Client $client, Utilisateur $utilisateur, float $montant_total, float $montant_verse = 0, ?string $mode_reglement = null, string $statut = 'EN_ATTENTE', ?string $date_echeance = null, ?int $id = null)
     {
         $this->id = $id;
         $this->numero_facture = $numero_facture;
-        $this->clientId = $clientId;
-        $this->utilisateurId = $utilisateurId;
+        $this->client = $client;
+        $this->utilisateur = $utilisateur;
         $this->montant_total = $montant_total;
         $this->montant_verse = $montant_verse;
         $this->mode_reglement = $mode_reglement;
@@ -49,12 +47,7 @@ class Vente
 
     public function getClientId(): int
     {
-        return $this->clientId;
-    }
-
-    public function setClientId(int $clientId): void
-    {
-        $this->clientId = $clientId;
+        return $this->clientId->getId();
     }
 
     public function getClient(): ?Client
@@ -69,12 +62,7 @@ class Vente
 
     public function getUtilisateurId(): int
     {
-        return $this->utilisateurId;
-    }
-
-    public function setUtilisateurId(int $utilisateurId): void
-    {
-        $this->utilisateurId = $utilisateurId;
+        return $this->utilisateurId->getId();
     }
 
     public function getUtilisateur(): ?Utilisateur

@@ -11,17 +11,16 @@ class Utilisateur
     private string $password;
     private ?string $adresse;
     private ?string $telephone;
-    private int $roleId;
-    private ?Role $role = null;
+    private Role $role ;
 
-    public function __construct(string $nom, string $prenom, string $email, string $password, int $roleId, ?string $adresse = null, ?string $telephone = null, ?int $id = null)
+    public function __construct(string $nom, string $prenom, string $email, string $password, Role $role, ?string $adresse = null, ?string $telephone = null, ?int $id = null)
     {
         $this->id = $id;
         $this->nom = $nom;
         $this->prenom = $prenom;
         $this->email = $email;
         $this->password = $password;
-        $this->roleId = $roleId;
+        $this->role = $role;
         $this->adresse = $adresse;
         $this->telephone = $telephone;
     }
@@ -103,12 +102,7 @@ class Utilisateur
 
     public function getRoleId(): int
     {
-        return $this->roleId;
-    }
-
-    public function setRoleId(int $roleId): void
-    {
-        $this->roleId = $roleId;
+        return $this->roleId->getId();
     }
 
     public function getRole(): ?Role

@@ -11,7 +11,7 @@ class POSController
     private ClientRepository $clientRepo;
     private ProduitRepository $produitRepo;
 
-    public function __construct()
+    public function __construct() 
     {
         SessionManager::init();
         $this->venteService = new VenteService();

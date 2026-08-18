@@ -7,22 +7,19 @@ require_once __DIR__ . '/ModePaiement.php';
 class Paiement
 {
     private ?int $id;
-    private int $detteId;
     private ?Dette $dette = null;
-    private ?int $utilisateurId;
-    private ?Utilisateur $utilisateur = null;
-    private int $modePaiementId;
-    private ?ModePaiement $modePaiement = null;
+    private Utilisateur $utilisateur ;
+    private ModePaiement $modePaiement ;
     private float $montant;
     private ?string $notes;
     private ?string $reference;
 
-    public function __construct(int $detteId, ?int $utilisateurId, int $modePaiementId, float $montant, ?string $notes = null, ?string $reference = null, ?int $id = null)
+    public function __construct(?Dette $dette, Utilisateur $utilisateur, ModePaiement $modePaiement, float $montant, ?string $notes = null, ?string $reference = null, ?int $id = null)
     {
         $this->id = $id;
-        $this->detteId = $detteId;
-        $this->utilisateurId = $utilisateurId;
-        $this->modePaiementId = $modePaiementId;
+        $this->dette = $dette;
+        $this->utilisateur = $utilisateur;
+        $this->modePaiement = $modePaiement;
         $this->montant = $montant;
         $this->notes = $notes;
         $this->reference = $reference;
@@ -31,20 +28,17 @@ class Paiement
     public function getId(): ?int { return $this->id; }
     public function setId(?int $id): void { $this->id = $id; }
 
-    public function getDetteId(): int { return $this->detteId; }
-    public function setDetteId(int $detteId): void { $this->detteId = $detteId; }
+    public function getDetteId(): int { return $this->detteId->getId(); }
 
     public function getDette(): ?Dette { return $this->dette; }
     public function setDette(?Dette $dette): void { $this->dette = $dette; }
 
-    public function getUtilisateurId(): ?int { return $this->utilisateurId; }
-    public function setUtilisateurId(?int $utilisateurId): void { $this->utilisateurId = $utilisateurId; }
+    public function getUtilisateurId(): ?int { return $this->utilisateurId->getId(); }
 
     public function getUtilisateur(): ?Utilisateur { return $this->utilisateur; }
     public function setUtilisateur(?Utilisateur $utilisateur): void { $this->utilisateur = $utilisateur; }
 
-    public function getModePaiementId(): int { return $this->modePaiementId; }
-    public function setModePaiementId(int $modePaiementId): void { $this->modePaiementId = $modePaiementId; }
+    public function getModePaiementId(): int { return $this->modePaiementId->getId(); }
 
     public function getModePaiement(): ?ModePaiement { return $this->modePaiement; }
     public function setModePaiement(?ModePaiement $modePaiement): void { $this->modePaiement = $modePaiement; }

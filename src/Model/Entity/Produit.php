@@ -14,11 +14,11 @@ class Produit
     private int $stock_actuel;
     private int $seuil_alerte;
     private int $fournisseurId;
-    private ?Fournisseur $fournisseur = null;
+    private Fournisseur $fournisseur ;
     private array $lignesVente = [];
     private array $lignesAppro = [];
 
-    public function __construct(string $code, string $libelle, ?string $categorie, float $prix_vente, float $cout_achat, int $fournisseurId, int $stock_initial = 0, int $stock_actuel = 0, int $seuil_alerte = 5, ?int $id = null)
+    public function __construct(string $code, string $libelle, ?string $categorie, float $prix_vente, float $cout_achat, Fournisseur $fournisseur, int $stock_initial = 0, int $stock_actuel = 0, int $seuil_alerte = 5, ?int $id = null)
     {
         $this->id = $id;
         $this->code = $code;
@@ -26,7 +26,7 @@ class Produit
         $this->categorie = $categorie;
         $this->prix_vente = $prix_vente;
         $this->cout_achat = $cout_achat;
-        $this->fournisseurId = $fournisseurId;
+        $this->fournisseur = $fournisseur;
         $this->stock_initial = $stock_initial;
         $this->stock_actuel = $stock_actuel;
         $this->seuil_alerte = $seuil_alerte;
@@ -145,13 +145,9 @@ class Produit
 
     public function getFournisseurId(): int
     {
-        return $this->fournisseurId;
+        return $this->fournisseurId->getId();
     }
 
-    public function setFournisseurId(int $fournisseurId): void
-    {
-        $this->fournisseurId = $fournisseurId;
-    }
 
     public function getFournisseur(): ?Fournisseur
     {

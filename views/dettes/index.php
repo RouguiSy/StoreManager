@@ -293,8 +293,8 @@
                                     <div class="form-group">
                                         <label for="montant_<?= $dette->getId() ?>">Montant (FCFA)</label>
                                         <input type="number" name="montant" id="montant_<?= $dette->getId() ?>" 
-                                               class="form-control" max="<?= $dette->getMontantRestant() ?>" 
-                                               value="<?= $dette->getMontantRestant() ?>" min="1" required>
+                                            class="form-control" max="<?= $dette->getMontantRestant() ?>" 
+                                            value="<?= $dette->getMontantRestant() ?>" min="1" required>
                                     </div>
                                     <div class="form-group">
                                         <label for="mode_<?= $dette->getId() ?>">Mode de Paiement</label>
@@ -366,3 +366,4 @@ function toggleDrawer(id) {
 
 </body>
 </html>
+git push origin main

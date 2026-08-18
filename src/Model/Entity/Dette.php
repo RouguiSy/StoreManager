@@ -7,22 +7,20 @@ class Dette
 {
     private ?int $id;
     private string $ref;
-    private int $venteId;
-    private ?Vente $vente = null;
-    private int $clientId;
-    private ?Client $client = null;
+    private Vente $vente ;
+    private Client $client ;
     private float $montant_initial;
     private float $montant_verse;
     private string $statut;
     private ?string $date_echeance;
     private array $paiements = [];
 
-    public function __construct(string $ref, int $venteId, int $clientId, float $montant_initial, float $montant_verse = 0, string $statut = 'NON_SOLDEE', ?string $date_echeance = null, ?int $id = null)
+    public function __construct(string $ref, Vente $vente, Client $client ,$clientId, float $montant_initial, float $montant_verse = 0, string $statut = 'NON_SOLDEE', ?string $date_echeance = null, ?int $id = null)
     {
         $this->id = $id;
         $this->ref = $ref;
-        $this->venteId = $venteId;
-        $this->clientId = $clientId;
+        $this->vente = $vente;
+        $this->client = $client;
         $this->montant_initial = $montant_initial;
         $this->montant_verse = $montant_verse;
         $this->statut = $statut;
@@ -34,14 +32,12 @@ class Dette
 
     public function getRef(): string { return $this->ref; }
 
-    public function getVenteId(): int { return $this->venteId; }
-    public function setVenteId(int $venteId): void { $this->venteId = $venteId; }
+    public function getVenteId(): int { return $this->venteId->getId(); }
 
     public function getVente(): ?Vente { return $this->vente; }
     public function setVente(?Vente $vente): void { $this->vente = $vente; }
 
-    public function getClientId(): int { return $this->clientId; }
-    public function setClientId(int $clientId): void { $this->clientId = $clientId; }
+    public function getClientId(): int { return $this->clientId->getId(); }
 
     public function getClient(): ?Client { return $this->client; }
     public function setClient(?Client $client): void { $this->client = $client; }
