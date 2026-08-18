@@ -4,82 +4,85 @@ require_once dirname(__DIR__) . "/Entity/Fournisseur.php";
 
 class FournisseurRepository
 {
-    private PDO $pdo;
-
-    public function __construct()
+    private static function getPdo(): PDO
     {
-        $this->pdo = Database::connexionDB();
+        return Database::connexionDB();
     }
 
-    public function insert(Fournisseur $fournisseur): int
+    public static function insert(Fournisseur $fournisseur): int
     {
+        $pdo = self::getPdo();
         $sql = "INSERT INTO fournisseurs (nom, email, telephone, adresse)
                 VALUES(:nom, :email, :telephone, :adresse)";
 
-        Database::executeUpdate($this->pdo, $sql, [
+        Database::executeUpdate($pdo, $sql, [
             'nom' => $fournisseur->getNom(),
             'email' => $fournisseur->getEmail(),
             'telephone' => $fournisseur->getTelephone(),
             'adresse' => $fournisseur->getAdresse()
         ]);
 
-        $id = (int) $this->pdo->lastInsertId();
+        $id = (int) $pdo->lastInsertId();
         $fournisseur->setId($id);
         return $id;
     }
 
-    public function selectById(int $id): ?Fournisseur
+    public static function selectById(int $id): ?Fournisseur
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM fournisseurs WHERE id = :id";
 
-        $fournisseur = Database::executeQuery($this->pdo, $sql, ['id' => $id]);
+        $fournisseur = Database::executeQuery($pdo, $sql, ['id' => $id]);
 
         if (!$fournisseur) return null;
         
-        return $this->toObjet($fournisseur);
+        return self::toObjet($fournisseur);
     }
 
-    public function selectByNom(string $nom): array
+    public static function selectByNom(string $nom): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM fournisseurs WHERE nom ILIKE :nom ORDER BY nom";
 
-        $tableauFournisseurs = Database::executeQuery($this->pdo, $sql, ['nom' => '%' . $nom . '%'], false);
+        $tableauFournisseurs = Database::executeQuery($pdo, $sql, ['nom' => '%' . $nom . '%'], false);
 
         $fournisseurs = [];
 
         if (empty($tableauFournisseurs)) return $fournisseurs;
         
         foreach ($tableauFournisseurs as $fournisseur) {
-            $fournisseurs[] = $this->toObjet($fournisseur);
+            $fournisseurs[] = self::toObjet($fournisseur);
         }
 
         return $fournisseurs;
     }
 
-    public function selectAll(): array
+    public static function selectAll(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM fournisseurs ORDER BY nom ASC";
 
-        $tableauFournisseurs = Database::query($this->pdo, $sql, false);
+        $tableauFournisseurs = Database::query($pdo, $sql, false);
 
         $fournisseurs = [];
 
         if (empty($tableauFournisseurs)) return $fournisseurs;
         
         foreach ($tableauFournisseurs as $fournisseur) {
-            $fournisseurs[] = $this->toObjet($fournisseur);
+            $fournisseurs[] = self::toObjet($fournisseur);
         }
 
         return $fournisseurs;
     }
 
-    public function update(Fournisseur $fournisseur): bool
+    public static function update(Fournisseur $fournisseur): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE fournisseurs
                 SET nom = :nom, email = :email, telephone = :telephone, adresse = :adresse
                 WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql,
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql,
             [
                 'id' => $fournisseur->getId(),
                 'nom' => $fournisseur->getNom(),
@@ -92,16 +95,17 @@ class FournisseurRepository
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    public function delete(int $id): bool
+    public static function delete(int $id): bool
     {
+        $pdo = self::getPdo();
         $sql = "DELETE FROM fournisseurs WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql, ['id' => $id]);
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql, ['id' => $id]);
 
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    private function toObjet(array $fournisseur): Fournisseur
+    private static function toObjet(array $fournisseur): Fournisseur
     {
         return new Fournisseur(
             $fournisseur['nom'],

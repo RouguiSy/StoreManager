@@ -4,19 +4,18 @@ require_once dirname(__DIR__) . "/Entity/Client.php";
 
 class ClientRepository
 {
-    private PDO $pdo;
-
-    public function __construct()
+    private static function getPdo(): PDO
     {
-        $this->pdo = Database::connexionDB();
+        return Database::connexionDB();
     }
 
-    public function insert(Client $client): int
+    public static function insert(Client $client): int
     {
+        $pdo = self::getPdo();
         $sql = "INSERT INTO clients (nom, prenom, telephone, email, limite_credit, solde_actuel)
                 VALUES(:nom, :prenom, :telephone, :email, :limite_credit, :solde_actuel)";
 
-        Database::executeUpdate($this->pdo, $sql, [
+        Database::executeUpdate($pdo, $sql, [
             'nom' => $client->getNom(),
             'prenom' => $client->getPrenom(),
             'telephone' => $client->getTelephone(),
@@ -25,86 +24,93 @@ class ClientRepository
             'solde_actuel' => $client->getSoldeActuel()
         ]);
 
-        $id = (int) $this->pdo->lastInsertId();
+        $id = (int) $pdo->lastInsertId();
         $client->setId($id);
         return $id;
     }
-    public function selectById(int $id): ?Client
+
+    public static function selectById(int $id): ?Client
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM clients WHERE id = :id";
 
-        $client = Database::executeQuery($this->pdo, $sql, ['id' => $id]);
+        $client = Database::executeQuery($pdo, $sql, ['id' => $id]);
 
         if (!$client) return null;
         
-        return $this->toObjet($client);
+        return self::toObjet($client);
     }
 
-    public function selectByTelephone(string $telephone): ?Client
+    public static function selectByTelephone(string $telephone): ?Client
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM clients WHERE telephone = :telephone";
 
-        $client = Database::executeQuery($this->pdo, $sql, ['telephone' => $telephone]);
+        $client = Database::executeQuery($pdo, $sql, ['telephone' => $telephone]);
 
         if (!$client) return null;
         
-        return $this->toObjet($client);
+        return self::toObjet($client);
     }
 
-    public function selectAll(): array
+    public static function selectAll(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM clients ORDER BY nom ASC";
 
-        $tableauClients = Database::query($this->pdo, $sql, false);
+        $tableauClients = Database::query($pdo, $sql, false);
 
         $clients = [];
 
         if (empty($tableauClients)) return $clients;
         
         foreach ($tableauClients as $client) {
-            $clients[] = $this->toObjet($client);
+            $clients[] = self::toObjet($client);
         }
 
         return $clients;
     }
 
-    public function selectDebiteurs(): array
+    public static function selectDebiteurs(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT c.* FROM clients c 
                 INNER JOIN dettes d ON c.id = d.client_id 
                 WHERE d.statut = 'NON_SOLDEE' 
                 GROUP BY c.id 
                 HAVING SUM(d.montant_restant) > 0";
 
-        $tableauClients = Database::query($this->pdo, $sql, false);
+        $tableauClients = Database::query($pdo, $sql, false);
 
         $clients = [];
 
         if (empty($tableauClients)) return $clients;
         
         foreach ($tableauClients as $client) {
-            $clients[] = $this->toObjet($client);
+            $clients[] = self::toObjet($client);
         }
 
         return $clients;
     }
 
-    public function getSoldeDisponible(int $id): float
+    public static function getSoldeDisponible(int $id): float
     {
+        $pdo = self::getPdo();
         $sql = "SELECT (limite_credit - solde_actuel) AS solde_disponible FROM clients WHERE id = :id";
-        $result = Database::executeQuery($this->pdo, $sql, ['id' => $id]);
+        $result = Database::executeQuery($pdo, $sql, ['id' => $id]);
 
         return $result ? (float) $result['solde_disponible'] : 0;
     }
 
-    public function update(Client $client): bool
+    public static function update(Client $client): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE clients
                 SET nom = :nom, prenom = :prenom, telephone = :telephone, email = :email, 
                     limite_credit = :limite_credit, solde_actuel = :solde_actuel
                 WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql,
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql,
             [
                 'id' => $client->getId(),
                 'nom' => $client->getNom(),
@@ -119,11 +125,12 @@ class ClientRepository
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    public function updateSolde(int $id, float $montant): bool
+    public static function updateSolde(int $id, float $montant): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE clients SET solde_actuel = solde_actuel + :montant WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql, [
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql, [
             'id' => $id,
             'montant' => $montant
         ]);
@@ -131,16 +138,17 @@ class ClientRepository
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    public function delete(int $id): bool
+    public static function delete(int $id): bool
     {
+        $pdo = self::getPdo();
         $sql = "DELETE FROM clients WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql, ['id' => $id]);
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql, ['id' => $id]);
 
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    private function toObjet(array $client): Client
+    private static function toObjet(array $client): Client
     {
         return new Client(
             $client['nom'],

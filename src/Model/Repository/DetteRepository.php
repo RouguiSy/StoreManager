@@ -5,19 +5,18 @@ require_once dirname(__DIR__) . "/Entity/Paiement.php";
 
 class DetteRepository
 {
-    private PDO $pdo;
-
-    public function __construct()
+    private static function getPdo(): PDO
     {
-        $this->pdo = Database::connexionDB();
+        return Database::connexionDB();
     }
 
-    public function insert(Dette $dette): int
+    public static function insert(Dette $dette): int
     {
+        $pdo = self::getPdo();
         $sql = "INSERT INTO dettes (ref, vente_id, client_id, montant_initial, montant_verse, montant_restant, statut, date_echeance)
                 VALUES (:ref, :vente_id, :client_id, :montant_initial, :montant_verse, :montant_restant, :statut, :date_echeance)";
 
-        Database::executeUpdate($this->pdo, $sql, [
+        Database::executeUpdate($pdo, $sql, [
             'ref' => $dette->getRef(),
             'vente_id' => $dette->getVenteId(),
             'client_id' => $dette->getClientId(),
@@ -28,84 +27,90 @@ class DetteRepository
             'date_echeance' => $dette->getDateEcheance()
         ]);
 
-        $id = (int) $this->pdo->lastInsertId();
+        $id = (int) $pdo->lastInsertId();
         $dette->setId($id);
         return $id;
     }
 
-    public function selectById(int $id): ?Dette
+    public static function selectById(int $id): ?Dette
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM dettes WHERE id = :id";
-        $result = Database::executeQuery($this->pdo, $sql, ['id' => $id]);
+        $result = Database::executeQuery($pdo, $sql, ['id' => $id]);
 
         if (!$result) {
             return null;
         }
 
-        return $this->toObjet($result);
+        return self::toObjet($result);
     }
 
-    public function selectByClient(int $clientId): array
+    public static function selectByClient(int $clientId): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM dettes WHERE client_id = :client_id ORDER BY created_at DESC";
-        $results = Database::executeQuery($this->pdo, $sql, ['client_id' => $clientId], false);
+        $results = Database::executeQuery($pdo, $sql, ['client_id' => $clientId], false);
 
         $dettes = [];
         foreach ($results as $row) {
-            $dettes[] = $this->toObjet($row);
+            $dettes[] = self::toObjet($row);
         }
 
         return $dettes;
     }
 
-    public function selectDettesActives(): array
+    public static function selectDettesActives(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM dettes WHERE statut = 'NON_SOLDEE' ORDER BY created_at DESC";
-        $results = Database::query($this->pdo, $sql, false);
+        $results = Database::query($pdo, $sql, false);
 
         $dettes = [];
         foreach ($results as $row) {
-            $dettes[] = $this->toObjet($row);
+            $dettes[] = self::toObjet($row);
         }
 
         return $dettes;
     }
 
-    public function selectDettesByClientActives(int $clientId): array
+    public static function selectDettesByClientActives(int $clientId): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM dettes WHERE client_id = :client_id AND statut = 'NON_SOLDEE' ORDER BY created_at DESC";
-        $results = Database::executeQuery($this->pdo, $sql, ['client_id' => $clientId], false);
+        $results = Database::executeQuery($pdo, $sql, ['client_id' => $clientId], false);
 
         $dettes = [];
         foreach ($results as $row) {
-            $dettes[] = $this->toObjet($row);
+            $dettes[] = self::toObjet($row);
         }
 
         return $dettes;
     }
 
-    public function selectAll(): array
+    public static function selectAll(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM dettes ORDER BY created_at DESC";
-        $results = Database::query($this->pdo, $sql, false);
+        $results = Database::query($pdo, $sql, false);
 
         $dettes = [];
         foreach ($results as $row) {
-            $dettes[] = $this->toObjet($row);
+            $dettes[] = self::toObjet($row);
         }
 
         return $dettes;
     }
 
-    public function update(Dette $dette): bool
+    public static function update(Dette $dette): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE dettes SET 
                     montant_verse = :montant_verse,
                     montant_restant = :montant_restant,
                     statut = :statut
                 WHERE id = :id";
 
-        $result = Database::executeUpdate($this->pdo, $sql, [
+        $result = Database::executeUpdate($pdo, $sql, [
             'id' => $dette->getId(),
             'montant_verse' => $dette->getMontantVerse(),
             'montant_restant' => $dette->getMontantRestant(),
@@ -115,12 +120,13 @@ class DetteRepository
         return $result > 0;
     }
 
-    public function insertPaiement(Paiement $paiement): int
+    public static function insertPaiement(Paiement $paiement): int
     {
+        $pdo = self::getPdo();
         $sql = "INSERT INTO paiements (dette_id, utilisateur_id, mode_paiement_id, montant, notes, reference)
                 VALUES (:dette_id, :utilisateur_id, :mode_paiement_id, :montant, :notes, :reference)";
 
-        Database::executeUpdate($this->pdo, $sql, [
+        Database::executeUpdate($pdo, $sql, [
             'dette_id' => $paiement->getDetteId(),
             'utilisateur_id' => $paiement->getUtilisateurId(),
             'mode_paiement_id' => $paiement->getModePaiementId(),
@@ -129,26 +135,28 @@ class DetteRepository
             'reference' => $paiement->getReference()
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return (int) $pdo->lastInsertId();
     }
 
-    public function getPaiementsByDette(int $detteId): array
+    public static function getPaiementsByDette(int $detteId): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM paiements WHERE dette_id = :dette_id ORDER BY date_paiement DESC";
-        $results = Database::executeQuery($this->pdo, $sql, ['dette_id' => $detteId], false);
+        $results = Database::executeQuery($pdo, $sql, ['dette_id' => $detteId], false);
 
         return $results;
     }
 
-    public function getTotalDettesParClient(int $clientId): float
+    public static function getTotalDettesParClient(int $clientId): float
     {
+        $pdo = self::getPdo();
         $sql = "SELECT COALESCE(SUM(montant_restant), 0) as total FROM dettes WHERE client_id = :client_id AND statut = 'NON_SOLDEE'";
-        $result = Database::executeQuery($this->pdo, $sql, ['client_id' => $clientId]);
+        $result = Database::executeQuery($pdo, $sql, ['client_id' => $clientId]);
 
         return $result ? (float) $result['total'] : 0;
     }
 
-    private function toObjet(array $row): Dette
+    private static function toObjet(array $row): Dette
     {
         return new Dette(
             $row['ref'],

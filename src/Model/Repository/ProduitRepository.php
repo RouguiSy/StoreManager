@@ -4,19 +4,18 @@ require_once dirname(__DIR__) . "/Entity/Produit.php";
 
 class ProduitRepository
 {
-    private PDO $pdo;
-
-    public function __construct()
+    private static function getPdo(): PDO
     {
-        $this->pdo = Database::connexionDB();
+        return Database::connexionDB();
     }
 
-    public function insert(Produit $produit): int
+    public static function insert(Produit $produit): int
     {
+        $pdo = self::getPdo();
         $sql = "INSERT INTO produits (code, libelle, categorie, prix_vente, cout_achat, stock_initial, stock_actuel, seuil_alerte, fournisseur_id)
                 VALUES(:code, :libelle, :categorie, :prix_vente, :cout_achat, :stock_initial, :stock_actuel, :seuil_alerte, :fournisseur_id)";
 
-        Database::executeUpdate($this->pdo, $sql, [
+        Database::executeUpdate($pdo, $sql, [
             'code' => $produit->getCode(),
             'libelle' => $produit->getLibelle(),
             'categorie' => $produit->getCategorie(),
@@ -28,103 +27,110 @@ class ProduitRepository
             'fournisseur_id' => $produit->getFournisseurId()
         ]);
 
-        $id = (int) $this->pdo->lastInsertId();
+        $id = (int) $pdo->lastInsertId();
         $produit->setId($id);
         return $id;
     }
 
-    public function selectById(int $id): ?Produit
+    public static function selectById(int $id): ?Produit
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits WHERE id = :id";
 
-        $produit = Database::executeQuery($this->pdo, $sql, ['id' => $id]);
+        $produit = Database::executeQuery($pdo, $sql, ['id' => $id]);
 
         if (!$produit) return null;
         
-        return $this->toObjet($produit);
+        return self::toObjet($produit);
     }
 
-    public function selectByCode(string $code): ?Produit
+    public static function selectByCode(string $code): ?Produit
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits WHERE code = :code";
 
-        $produit = Database::executeQuery($this->pdo, $sql, ['code' => $code]);
+        $produit = Database::executeQuery($pdo, $sql, ['code' => $code]);
 
         if (!$produit) return null;
         
-        return $this->toObjet($produit);
+        return self::toObjet($produit);
     }
 
-    public function selectLowStock(): array
+    public static function selectLowStock(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits WHERE stock_actuel <= seuil_alerte ORDER BY stock_actuel ASC";
 
-        $tableauProduits = Database::query($this->pdo, $sql, false);
+        $tableauProduits = Database::query($pdo, $sql, false);
 
         $produits = [];
 
         if (empty($tableauProduits)) return $produits;
         
         foreach ($tableauProduits as $produit) {
-            $produits[] = $this->toObjet($produit);
+            $produits[] = self::toObjet($produit);
         }
 
         return $produits;
     }
 
-    public function selectByCategorie(string $categorie): array
+    public static function selectByCategorie(string $categorie): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits WHERE categorie = :categorie ORDER BY libelle";
 
-        $tableauProduits = Database::executeQuery($this->pdo, $sql, ['categorie' => $categorie], false);
+        $tableauProduits = Database::executeQuery($pdo, $sql, ['categorie' => $categorie], false);
 
         $produits = [];
 
         if (empty($tableauProduits)) return $produits;
         
         foreach ($tableauProduits as $produit) {
-            $produits[] = $this->toObjet($produit);
+            $produits[] = self::toObjet($produit);
         }
 
         return $produits;
     }
 
-    public function selectByFournisseur(int $fournisseurId): array
+    public static function selectByFournisseur(int $fournisseurId): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits WHERE fournisseur_id = :fournisseur_id ORDER BY libelle";
 
-        $tableauProduits = Database::executeQuery($this->pdo, $sql, ['fournisseur_id' => $fournisseurId], false);
+        $tableauProduits = Database::executeQuery($pdo, $sql, ['fournisseur_id' => $fournisseurId], false);
 
         $produits = [];
 
         if (empty($tableauProduits)) return $produits;
         
         foreach ($tableauProduits as $produit) {
-            $produits[] = $this->toObjet($produit);
+            $produits[] = self::toObjet($produit);
         }
 
         return $produits;
     }
 
-    public function selectAll(): array
+    public static function selectAll(): array
     {
+        $pdo = self::getPdo();
         $sql = "SELECT * FROM produits ORDER BY libelle ASC";
 
-        $tableauProduits = Database::query($this->pdo, $sql, false);
+        $tableauProduits = Database::query($pdo, $sql, false);
 
         $produits = [];
 
         if (empty($tableauProduits)) return $produits;
         
         foreach ($tableauProduits as $produit) {
-            $produits[] = $this->toObjet($produit);
+            $produits[] = self::toObjet($produit);
         }
 
         return $produits;
     }
 
-    public function update(Produit $produit): bool
+    public static function update(Produit $produit): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE produits
                 SET code = :code, libelle = :libelle, categorie = :categorie, 
                     prix_vente = :prix_vente, cout_achat = :cout_achat,
@@ -132,7 +138,7 @@ class ProduitRepository
                     seuil_alerte = :seuil_alerte, fournisseur_id = :fournisseur_id
                 WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql,
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql,
             [
                 'id' => $produit->getId(),
                 'code' => $produit->getCode(),
@@ -150,11 +156,12 @@ class ProduitRepository
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    public function updateStock(int $id, int $quantite): bool
+    public static function updateStock(int $id, int $quantite): bool
     {
+        $pdo = self::getPdo();
         $sql = "UPDATE produits SET stock_actuel = stock_actuel + :quantite WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql, [
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql, [
             'id' => $id,
             'quantite' => $quantite
         ]);
@@ -162,16 +169,17 @@ class ProduitRepository
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    public function delete(int $id): bool
+    public static function delete(int $id): bool
     {
+        $pdo = self::getPdo();
         $sql = "DELETE FROM produits WHERE id = :id";
 
-        $nbrRowsAffecte = Database::executeUpdate($this->pdo, $sql, ['id' => $id]);
+        $nbrRowsAffecte = Database::executeUpdate($pdo, $sql, ['id' => $id]);
 
         return $nbrRowsAffecte > 0 ? true : false;
     }
 
-    private function toObjet(array $produit): Produit
+    private static function toObjet(array $produit): Produit
     {
         return new Produit(
             $produit['code'],

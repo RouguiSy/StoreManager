@@ -8,18 +8,8 @@ require_once dirname(__DIR__) . "/Model/Entity/Dette.php";
 
 class VenteService
 {
-    private ClientRepository $clientRepo;
-    private ProduitRepository $produitRepo;
-    private PDO $pdo;
 
-    public function __construct()
-    {
-        $this->clientRepo = new ClientRepository();
-        $this->produitRepo = new ProduitRepository();
-        $this->pdo = Database::connexionDB();
-    }
-
-    public function processSale(int $clientId, array $panier, string $modeReglement, float $montantVerse, int $utilisateurId): array
+    private static function processSale(int $clientId, array $panier, string $modeReglement, float $montantVerse, int $utilisateurId): array
     {
         if (empty($panier)) {
             return ['success' => false, 'message' => 'Le panier est vide', 'vente_id' => null];
@@ -152,7 +142,7 @@ class VenteService
         }
     }
 
-    private function insertVente(Vente $vente): int
+    private static function insertVente(Vente $vente): int
     {
         $sql = "INSERT INTO ventes (numero_facture, client_id, utilisateur_id, montant_total, montant_verse, mode_reglement, statut, date_echeance)
                 VALUES (:numero_facture, :client_id, :utilisateur_id, :montant_total, :montant_verse, :mode_reglement, :statut, :date_echeance)";
@@ -169,7 +159,7 @@ class VenteService
         ]);
     }
 
-    private function insertLigneVente(LigneVente $ligneVente): int
+    private static function insertLigneVente(LigneVente $ligneVente): int
     {
         $sql = "INSERT INTO lignes_vente (vente_id, produit_id, quantite, prix_unitaire, sous_total)
                 VALUES (:vente_id, :produit_id, :quantite, :prix_unitaire, :sous_total)";
@@ -183,7 +173,7 @@ class VenteService
         ]);
     }
 
-    private function insertDette(Dette $dette): int
+    private static function insertDette(Dette $dette): int
     {
         $sql = "INSERT INTO dettes (ref, vente_id, client_id, montant_initial, montant_verse, montant_restant, statut, date_echeance)
                 VALUES (:ref, :vente_id, :client_id, :montant_initial, :montant_verse, :montant_restant, :statut, :date_echeance)";
@@ -200,7 +190,7 @@ class VenteService
         ]);
     }
 
-    private function updateVenteStatut(int $venteId, string $statut): bool
+    private static function updateVenteStatut(int $venteId, string $statut): bool
     {
         $sql = "UPDATE ventes SET statut = :statut WHERE id = :id";
         $result = Database::executeUpdate($this->pdo, $sql, [
@@ -210,7 +200,7 @@ class VenteService
         return $result > 0;
     }
 
-    private function genererNumeroFacture(): string
+    private static function genererNumeroFacture(): string
     {
         $date = date('Ymd');
         $sql = "SELECT COUNT(*) as total FROM ventes WHERE numero_facture LIKE :prefix";
@@ -219,7 +209,7 @@ class VenteService
         return 'FAC-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
-    private function genererRefDette(): string
+    private static function genererRefDette(): string
     {
         $date = date('Ymd');
         $sql = "SELECT COUNT(*) as total FROM dettes WHERE ref LIKE :prefix";
@@ -228,7 +218,7 @@ class VenteService
         return 'DT-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
-    public function calculerTotalPanier(array $panier): float
+    private static function calculerTotalPanier(array $panier): float
     {
         $total = 0;
         foreach ($panier as $produitId => $quantite) {
@@ -240,7 +230,7 @@ class VenteService
         return $total;
     }
 
-    public function verifierStock(array $panier): array
+    private static function verifierStock(array $panier): array
     {
         $erreurs = [];
         foreach ($panier as $produitId => $quantite) {
