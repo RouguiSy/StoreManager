@@ -8,14 +8,17 @@ require_once dirname(__DIR__) . "/Model/Entity/Dette.php";
 
 class VenteService
 {
-
-    private static function processSale(int $clientId, array $panier, string $modeReglement, float $montantVerse, int $utilisateurId): array
+    public static function processSale(int $clientId, array $panier, string $modeReglement, float $montantVerse, int $utilisateurId): array
     {
         if (empty($panier)) {
             return ['success' => false, 'message' => 'Le panier est vide', 'vente_id' => null];
         }
 
-        $client = $this->clientRepo->selectById($clientId);
+        $clientRepo = new ClientRepository();
+        $produitRepo = new ProduitRepository();
+        $pdo = Database::connexionDB();
+
+        $client = $clientRepo->selectById($clientId);
         if (!$client) {
             return ['success' => false, 'message' => 'Client introuvable', 'vente_id' => null];
         }
@@ -24,7 +27,7 @@ class VenteService
         $montantTotal = 0;
 
         foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById((int)$produitId);
+            $produit = $produitRepo->selectById((int)$produitId);
             if (!$produit) {
                 return ['success' => false, 'message' => "Produit ID $produitId introuvable", 'vente_id' => null];
             }
@@ -46,7 +49,7 @@ class VenteService
             $montantTotal += $quantite * $produit->getPrixVente();
         }
 
-        $soldeDisponible = $this->clientRepo->getSoldeDisponible($clientId);
+        $soldeDisponible = $clientRepo->getSoldeDisponible($clientId);
         $montantRestant = $montantTotal - $montantVerse;
 
         if ($montantRestant > 0 && $montantRestant > $soldeDisponible) {
@@ -58,9 +61,9 @@ class VenteService
         }
 
         try {
-            Database::beginTransaction($this->pdo);
+            Database::beginTransaction($pdo);
 
-            $numeroFacture = $this->genererNumeroFacture();
+            $numeroFacture = self::genererNumeroFacture($pdo);
 
             $vente = new Vente(
                 $numeroFacture,
@@ -73,7 +76,7 @@ class VenteService
                 null
             );
 
-            $venteId = $this->insertVente($vente);
+            $venteId = self::insertVente($pdo, $vente);
             $vente->setId($venteId);
 
             foreach ($lignesVente as $ligneData) {
@@ -87,19 +90,19 @@ class VenteService
                     $quantite,
                     $prixUnitaire
                 );
-                $this->insertLigneVente($ligneVente);
+                self::insertLigneVente($pdo, $ligneVente);
 
-                $this->produitRepo->updateStock($produit->getId(), -$quantite);
+                $produitRepo->updateStock($produit->getId(), -$quantite);
             }
 
             if ($montantVerse > 0) {
-                $this->clientRepo->updateSolde($clientId, $montantVerse);
+                $clientRepo->updateSolde($clientId, $montantVerse);
             }
 
             $detteId = null;
             if ($montantRestant > 0) {
                 $dette = new Dette(
-                    $this->genererRefDette(),
+                    self::genererRefDette($pdo),
                     $venteId,
                     $clientId,
                     $montantRestant,
@@ -107,7 +110,7 @@ class VenteService
                     'NON_SOLDEE',
                     null
                 );
-                $detteId = $this->insertDette($dette);
+                $detteId = self::insertDette($pdo, $dette);
             }
 
             if ($montantVerse >= $montantTotal) {
@@ -117,9 +120,9 @@ class VenteService
             } else {
                 $statut = 'EN_ATTENTE';
             }
-            $this->updateVenteStatut($venteId, $statut);
+            self::updateVenteStatut($pdo, $venteId, $statut);
 
-            Database::commit($this->pdo);
+            Database::commit($pdo);
 
             return [
                 'success' => true,
@@ -133,7 +136,7 @@ class VenteService
             ];
 
         } catch (Exception $e) {
-            Database::rollBack($this->pdo);
+            Database::rollBack($pdo);
             return [
                 'success' => false,
                 'message' => 'Erreur lors de l\'enregistrement de la vente: ' . $e->getMessage(),
@@ -142,12 +145,40 @@ class VenteService
         }
     }
 
-    private static function insertVente(Vente $vente): int
+    public static function calculerTotalPanier(array $panier): float
+    {
+        $produitRepo = new ProduitRepository();
+        $total = 0;
+        foreach ($panier as $produitId => $quantite) {
+            $produit = $produitRepo->selectById((int)$produitId);
+            if ($produit) {
+                $total += $produit->getPrixVente() * $quantite;
+            }
+        }
+        return $total;
+    }
+
+    public static function verifierStock(array $panier): array
+    {
+        $produitRepo = new ProduitRepository();
+        $erreurs = [];
+        foreach ($panier as $produitId => $quantite) {
+            $produit = $produitRepo->selectById((int)$produitId);
+            if (!$produit) {
+                $erreurs[] = "Produit ID $produitId introuvable";
+            } elseif ($produit->getStockActuel() < $quantite) {
+                $erreurs[] = "Stock insuffisant pour {$produit->getLibelle()}. Disponible: {$produit->getStockActuel()}";
+            }
+        }
+        return $erreurs;
+    }
+
+    private static function insertVente(PDO $pdo, Vente $vente): int
     {
         $sql = "INSERT INTO ventes (numero_facture, client_id, utilisateur_id, montant_total, montant_verse, mode_reglement, statut, date_echeance)
                 VALUES (:numero_facture, :client_id, :utilisateur_id, :montant_total, :montant_verse, :mode_reglement, :statut, :date_echeance)";
 
-        return Database::executeUpdate($this->pdo, $sql, [
+        return Database::executeUpdate($pdo, $sql, [
             'numero_facture' => $vente->getNumeroFacture(),
             'client_id' => $vente->getClientId(),
             'utilisateur_id' => $vente->getUtilisateurId(),
@@ -159,12 +190,12 @@ class VenteService
         ]);
     }
 
-    private static function insertLigneVente(LigneVente $ligneVente): int
+    private static function insertLigneVente(PDO $pdo, LigneVente $ligneVente): int
     {
         $sql = "INSERT INTO lignes_vente (vente_id, produit_id, quantite, prix_unitaire, sous_total)
                 VALUES (:vente_id, :produit_id, :quantite, :prix_unitaire, :sous_total)";
 
-        return Database::executeUpdate($this->pdo, $sql, [
+        return Database::executeUpdate($pdo, $sql, [
             'vente_id' => $ligneVente->getVenteId(),
             'produit_id' => $ligneVente->getProduitId(),
             'quantite' => $ligneVente->getQuantite(),
@@ -173,12 +204,12 @@ class VenteService
         ]);
     }
 
-    private static function insertDette(Dette $dette): int
+    private static function insertDette(PDO $pdo, Dette $dette): int
     {
         $sql = "INSERT INTO dettes (ref, vente_id, client_id, montant_initial, montant_verse, montant_restant, statut, date_echeance)
                 VALUES (:ref, :vente_id, :client_id, :montant_initial, :montant_verse, :montant_restant, :statut, :date_echeance)";
 
-        return Database::executeUpdate($this->pdo, $sql, [
+        return Database::executeUpdate($pdo, $sql, [
             'ref' => $dette->getRef(),
             'vente_id' => $dette->getVenteId(),
             'client_id' => $dette->getClientId(),
@@ -190,57 +221,31 @@ class VenteService
         ]);
     }
 
-    private static function updateVenteStatut(int $venteId, string $statut): bool
+    private static function updateVenteStatut(PDO $pdo, int $venteId, string $statut): bool
     {
         $sql = "UPDATE ventes SET statut = :statut WHERE id = :id";
-        $result = Database::executeUpdate($this->pdo, $sql, [
+        $result = Database::executeUpdate($pdo, $sql, [
             'id' => $venteId,
             'statut' => $statut
         ]);
         return $result > 0;
     }
 
-    private static function genererNumeroFacture(): string
+    private static function genererNumeroFacture(PDO $pdo): string
     {
         $date = date('Ymd');
         $sql = "SELECT COUNT(*) as total FROM ventes WHERE numero_facture LIKE :prefix";
-        $result = Database::executeQuery($this->pdo, $sql, ['prefix' => 'FAC-' . $date . '-%']);
+        $result = Database::executeQuery($pdo, $sql, ['prefix' => 'FAC-' . $date . '-%']);
         $count = $result ? (int)$result['total'] + 1 : 1;
         return 'FAC-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
-    private static function genererRefDette(): string
+    private static function genererRefDette(PDO $pdo): string
     {
         $date = date('Ymd');
         $sql = "SELECT COUNT(*) as total FROM dettes WHERE ref LIKE :prefix";
-        $result = Database::executeQuery($this->pdo, $sql, ['prefix' => 'DT-' . $date . '-%']);
+        $result = Database::executeQuery($pdo, $sql, ['prefix' => 'DT-' . $date . '-%']);
         $count = $result ? (int)$result['total'] + 1 : 1;
         return 'DT-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
-    }
-
-    private static function calculerTotalPanier(array $panier): float
-    {
-        $total = 0;
-        foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById((int)$produitId);
-            if ($produit) {
-                $total += $produit->getPrixVente() * $quantite;
-            }
-        }
-        return $total;
-    }
-
-    private static function verifierStock(array $panier): array
-    {
-        $erreurs = [];
-        foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitRepo->selectById((int)$produitId);
-            if (!$produit) {
-                $erreurs[] = "Produit ID $produitId introuvable";
-            } elseif ($produit->getStockActuel() < $quantite) {
-                $erreurs[] = "Stock insuffisant pour {$produit->getLibelle()}. Disponible: {$produit->getStockActuel()}";
-            }
-        }
-        return $erreurs;
     }
 }

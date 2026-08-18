@@ -6,24 +6,13 @@ require_once dirname(__DIR__) . "/Model/Entity/Paiement.php";
 
 class DebtService
 {
-    private DetteRepository $detteRepo;
-    private ClientRepository $clientRepo;
-    private PDO $pdo;
-
-    public function __construct()
-    {
-        $this->detteRepo = new DetteRepository();
-        $this->clientRepo = new ClientRepository();
-        $this->pdo = Database::connexionDB();
-    }
-
-    public function repayDebt(int $detteId, float $montant, int $modePaiementId, ?int $utilisateurId = null, ?string $notes = null): array
+    public static function repayDebt(int $detteId, float $montant, int $modePaiementId, ?int $utilisateurId = null, ?string $notes = null): array
     {
         if ($montant <= 0) {
             return ['success' => false, 'message' => 'Le montant doit etre superieur a 0'];
         }
 
-        $dette = $this->detteRepo->selectById($detteId);
+        $dette = DetteRepository::selectById($detteId);
         if (!$dette) {
             return ['success' => false, 'message' => 'Dette introuvable'];
         }
@@ -40,11 +29,13 @@ class DebtService
             ];
         }
 
+        $pdo = Database::connexionDB();
+
         try {
-            Database::beginTransaction($this->pdo);
+            Database::beginTransaction($pdo);
 
             $dette->applyPayment($montant);
-            $this->detteRepo->update($dette);
+            DetteRepository::update($dette);
 
             $paiement = new Paiement(
                 $detteId,
@@ -54,11 +45,11 @@ class DebtService
                 $notes,
                 null
             );
-            $this->detteRepo->insertPaiement($paiement);
+            DetteRepository::insertPaiement($paiement);
 
-            $this->clientRepo->updateSolde($dette->getClientId(), -$montant);
+            ClientRepository::updateSolde($dette->getClientId(), -$montant);
 
-            Database::commit($this->pdo);
+            Database::commit($pdo);
 
             return [
                 'success' => true,
@@ -70,7 +61,7 @@ class DebtService
             ];
 
         } catch (Exception $e) {
-            Database::rollBack($this->pdo);
+            Database::rollBack($pdo);
             return [
                 'success' => false,
                 'message' => 'Erreur lors du remboursement: ' . $e->getMessage()
@@ -78,39 +69,39 @@ class DebtService
         }
     }
 
-    public function getDettesActives(): array
+    public static function getDettesActives(): array
     {
-        return $this->detteRepo->selectDettesActives();
+        return DetteRepository::selectDettesActives();
     }
 
-    public function getDettesByClient(int $clientId): array
+    public static function getDettesByClient(int $clientId): array
     {
-        return $this->detteRepo->selectByClient($clientId);
+        return DetteRepository::selectByClient($clientId);
     }
 
-    public function getDettesActivesByClient(int $clientId): array
+    public static function getDettesActivesByClient(int $clientId): array
     {
-        return $this->detteRepo->selectDettesByClientActives($clientId);
+        return DetteRepository::selectDettesByClientActives($clientId);
     }
 
-    public function getTotalDettesByClient(int $clientId): float
+    public static function getTotalDettesByClient(int $clientId): float
     {
-        return $this->detteRepo->getTotalDettesParClient($clientId);
+        return DetteRepository::getTotalDettesParClient($clientId);
     }
 
-    public function getPaiementsByDette(int $detteId): array
+    public static function getPaiementsByDette(int $detteId): array
     {
-        return $this->detteRepo->getPaiementsByDette($detteId);
+        return DetteRepository::getPaiementsByDette($detteId);
     }
 
-    public function getDetteWithDetails(int $detteId): ?array
+    public static function getDetteWithDetails(int $detteId): ?array
     {
-        $dette = $this->detteRepo->selectById($detteId);
+        $dette = DetteRepository::selectById($detteId);
         if (!$dette) {
             return null;
         }
 
-        $paiements = $this->detteRepo->getPaiementsByDette($detteId);
+        $paiements = DetteRepository::getPaiementsByDette($detteId);
 
         return [
             'dette' => $dette,
